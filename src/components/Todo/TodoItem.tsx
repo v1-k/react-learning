@@ -4,6 +4,7 @@ import { TodoItemProps } from "./TodoItemProps";
 interface TodoItemPropsExtended extends TodoItemProps {
   onChange?: (checked: boolean) => void;
   onDelete: () => void;
+  onEdit: (label: string) => void; // New prop for handling edit
 }
 const TodoItem: FC<TodoItemPropsExtended> = ({
   id,
@@ -11,15 +12,34 @@ const TodoItem: FC<TodoItemPropsExtended> = ({
   checked = false,
   onChange,
   onDelete,
+  onEdit,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedLabel, setEditedLabel] = useState(label);
+
+  const handleEdit = () => {
+    if (isEditing && editedLabel.trim() !== "") {
+      onEdit(editedLabel.trim());
+    }
+    setIsEditing(!isEditing);
+  };
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleEdit();
+    }
+  };
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditedLabel(e.target.value);
+  };
 
   return (
     <>
-      <label
-        className="todo-item border"
+      <span
+        className={`todo-item border ${isEditing ? "editing" : ""}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onDoubleClick={handleEdit}
       >
         <input
           type="checkbox"
@@ -28,16 +48,29 @@ const TodoItem: FC<TodoItemPropsExtended> = ({
           onChange={(e) => onChange && onChange(e.target.checked)}
           className="todo-item-checkbox"
         />
-        <span className={`todo-item-label ${checked ? "checked" : ""}`}>
-          {label}
-        </span>
-
-        {isHovered && (
-          <button className="todo-delete" onClick={onDelete}>
-            X
-          </button>
+        {isEditing ? (
+          <input
+            className="todo-item-editable todo-input"
+            type="text"
+            value={editedLabel}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            autoFocus
+          />
+        ) : (
+          <span className={`todo-item-label ${checked ? "checked" : ""}`}>
+            {label}
+          </span>
         )}
-      </label>
+
+        {isHovered && !isEditing && (
+          <>
+            <button className="todo-delete" onClick={onDelete}>
+              X
+            </button>
+          </>
+        )}
+      </span>
     </>
   );
 };

@@ -5,32 +5,8 @@ import TodoItem from "./TodoItem";
 import TodoInput from "./TodoInput";
 import { TodoItemProps } from "./TodoItemProps";
 
-const initialData: TodoItemProps[] = [
-  {
-    id: uuid(),
-    label: "Todo 1",
-    checked: false,
-    created_at: "",
-    completed_at: "",
-  },
-  {
-    id: uuid(),
-    label: "Todo 2",
-    checked: false,
-    created_at: "",
-    completed_at: "",
-  },
-  {
-    id: uuid(),
-    label: "Todo 3",
-    checked: true,
-    created_at: "",
-    completed_at: "",
-  },
-];
-
 export default function Todo() {
-  const [todos, setTodos] = useState<TodoItemProps[]>(initialData);
+  const [todos, setTodos] = useState<TodoItemProps[]>([]);
 
   const addTodos = useCallback((label: string) => {
     setTodos((prevTodos) => [
@@ -63,6 +39,17 @@ export default function Todo() {
       return prevTodos.filter((todo) => todo.id !== id);
     });
   }, []);
+
+  const handleEdit = useCallback((id: string, label: string) => {
+    setTodos((prevTodos) => {
+      return prevTodos.map((prevTodo) => {
+        if (prevTodo.id === id) {
+          return { ...prevTodo, label: label };
+        }
+        return prevTodo;
+      });
+    });
+  }, []);
   return (
     <>
       <div className="todo-main">
@@ -93,6 +80,7 @@ export default function Todo() {
                 {...todo}
                 onChange={() => handleChange(todo.id)}
                 onDelete={() => handleDelete(todo.id)}
+                onEdit={(label) => handleEdit(todo.id, label)}
               />
             ))}
         </ul>
